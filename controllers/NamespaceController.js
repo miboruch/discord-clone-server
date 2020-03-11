@@ -1,12 +1,23 @@
 const Namespace = require("../classes/Namespace");
 const Room = require("../classes/Room");
+const uniqid = require("uniqid");
 
 const namespaces = [];
 
 const defaultNamespace = new Namespace(0, "Default", "/default");
-defaultNamespace.addRoom(new Room(0, "Test room", false));
+defaultNamespace.addRoom(new Room(0, "test ID", "Test room", false));
 
 namespaces.push(defaultNamespace);
+
+const createNewNamespace = namespaceName => {
+  const generatedID = uniqid();
+  const namespace = new Namespace(
+    generatedID,
+    namespaceName,
+    `/${generatedID}`
+  );
+  namespaces.push(namespace);
+};
 
 const getAllNamespaces = () => {
   return namespaces;
@@ -24,8 +35,14 @@ const getNamespaceByName = name => {
   return namespaces.filter(namespace => namespace.namespaceName.includes(name));
 };
 
+const getAllNamespaceRooms = namespaceID => {
+  return getNamespaceByID(namespaceID).rooms;
+};
+
 module.exports = {
+  createNewNamespace,
   getAllNamespaces,
   getNamespaceByID,
-  getNamespaceByName
+  getNamespaceByName,
+  getAllNamespaceRooms
 };

@@ -1,6 +1,7 @@
 class Room {
-  constructor(roomID, roomName, isPrivate = false, password = null) {
+  constructor(roomID, roomOwnerID, roomName, isPrivate = false, password = null) {
     this.roomID = roomID;
+    this.roomOwnerID = roomOwnerID;
     this.roomName = roomName;
     this.isPrivate = isPrivate;
     this.password = password;
