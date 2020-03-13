@@ -8,7 +8,7 @@ const createRoom = (
   isPrivate,
   password
 ) => {
-  const room = new Room(roomName, roomOwnerID, isPrivate, password);
+  const room = new Room(roomName, roomOwnerID, roomName, isPrivate, password);
   const namespace = namespaceController.getNamespaceByID(namespaceID);
   namespace.addRoom(room);
   console.log(namespace);
