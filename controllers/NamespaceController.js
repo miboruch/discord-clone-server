@@ -1,48 +1,43 @@
-const Namespace = require("../classes/Namespace");
-const Room = require("../classes/Room");
-const uniqid = require("uniqid");
+const Namespace = require('../models/Namespace');
+const socket = require('../socket');
 
-const namespaces = [];
+const namespace = {
+  getAllNamespaces: async (req, res) => {
+    try {
+      const namespaces = await Namespace.find();
 
-const defaultNamespace = new Namespace(0, "Default", "/default");
-defaultNamespace.addRoom(new Room(0, "test ID", "Test room", false));
+      res.status(200).send(namespaces);
+      socket.getIO().emit('load_namespaces', namespaces);
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  },
+  /* name, ownerID(from private route), isPrivate, password*/
+  createNewNamespace: async (req, res) => {
+    try {
+      const newNamespace = new Namespace({
+        name: req.body.name,
+        ownerID: req.user._id,
+        isPrivate: req.body.isPrivate,
+        password: req.body.isPrivate ? req.body.password : null
+      });
 
-namespaces.push(defaultNamespace);
+      const savedNamespace = await newNamespace.save();
 
-const createNewNamespace = namespaceName => {
-  const generatedID = uniqid();
-  const namespace = new Namespace(
-    generatedID,
-    namespaceName,
-    `/${generatedID}`
-  );
-  namespaces.push(namespace);
-};
-
-const getAllNamespaces = () => {
-  return namespaces;
-};
-
-const getNamespaceByID = id => {
-  const [namespace] = namespaces.filter(namespace => namespace.id === id);
-  if (!namespace) {
-    return false;
+      res.status(200).send(savedNamespace);
+      socket.getIO().emit('namespace_created', savedNamespace);
+    } catch (error) {
+      res.status(500).send(error);
+    }
   }
-  return namespace;
+
+  /*
+  TODO:
+    - get all namespace rooms! (Room controller)
+    - delete namespace
+    - get namespace by ID
+    - get namespace by name
+   */
 };
 
-const getNamespaceByName = name => {
-  return namespaces.filter(namespace => namespace.namespaceName.includes(name));
-};
-
-const getAllNamespaceRooms = namespaceID => {
-  return getNamespaceByID(namespaceID).rooms;
-};
-
-module.exports = {
-  createNewNamespace,
-  getAllNamespaces,
-  getNamespaceByID,
-  getNamespaceByName,
-  getAllNamespaceRooms
-};
+module.exports = namespace;
