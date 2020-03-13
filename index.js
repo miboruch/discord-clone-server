@@ -1,12 +1,25 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 const socket = require('./socket');
 const roomController = require('./controllers/RoomController');
 const namespaceController = require('./controllers/NamespaceController');
 require('dotenv').config();
 
+const userRoutes = require('./routes/userRoutes');
+
 /* MIDDLEWARES */
 const app = express();
+app.use(bodyParser.json());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, auth-token'
+  );
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  next();
+});
 
 mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true });
 
@@ -60,4 +73,5 @@ connection.once('open', () => {
       );
     });
   });
+  app.use('/user', userRoutes);
 });
