@@ -1,14 +1,16 @@
 const mongoose = require('mongoose');
 
-const namespaceSchema = new mongoose.Schema({
+const roomSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
     max: 255
   },
   ownerID: {
-    // type: mongoose.Schema.ObjectId
-    type: String
+    type: mongoose.Schema.ObjectId
+  },
+  namespaceID: {
+    type: mongoose.Schema.ObjectId
   },
   isPrivate: {
     type: Boolean,
@@ -16,9 +18,9 @@ const namespaceSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: false,
+    required: true,
     max: 1024
   }
 });
 
-module.exports = mongoose.model('Namespace', namespaceSchema);
+module.exports = mongoose.model('Room', roomSchema);

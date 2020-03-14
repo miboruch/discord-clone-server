@@ -2,11 +2,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const socket = require('./socket');
+const namespaceController = require('./controllers/NamespaceController');
 const roomController = require('./controllers/RoomController');
 require('dotenv').config();
 
 const userRoutes = require('./routes/userRoutes');
-const namespaceRoutes = require('./routes/namespaceRoutes');
 
 /* MIDDLEWARES */
 const app = express();
@@ -29,50 +29,57 @@ connection.on('error', error => {
 });
 
 /* DATABASE CONNECTION OPEN */
-connection.once('open', () => {
+connection.once('open', async () => {
   console.log('Connected to DB');
   const server = app.listen(9000, () => console.log('Server is running'));
   const io = socket.init(server);
 
-  io.on('connection', socket => {
+  io.on('connection', async socket => {
     console.log(socket.id);
-    // roomController.createRoom(0, 'testID', 'Test room name', false, null);
-    // console.log(namespaceController.getAllNamespaceRooms(0));
-    //
-    // socket.emit('fetch_namespaces', namespaceController.getAllNamespaces());
+    socket.emit(
+      'load_namespaces',
+      await namespaceController.getAllNamespaces()
+    );
 
     socket.on('user_connected', ({ socketID, username }) => {
       console.log(socketID);
       console.log(username);
     });
 
+    socket.on(
+      'create_namespace',
+      async ({ name, ownerID, isPrivate, password }) => {
+        const namespace = await namespaceController.createNewNamespace(
+          name,
+          ownerID,
+          isPrivate,
+          password
+        );
+        socket.emit('namespace_created', namespace);
+      }
+    );
+
     socket.on('disconnect', () => {
       console.log('DISCONNECTING');
       console.log(socket.id);
     });
-
-    // socket.on('create_namespace', text => {
-    //   namespaceController.createNewNamespace(text);
-    //
-    //   socket.emit('namespace_created', namespaceController.getAllNamespaces());
-    // });
-
-    socket.on('join_namespace', endpoint => {
-      socket.emit('namespace_joined', endpoint);
-    });
   });
 
-  // namespaceController.getAllNamespaces().map(namespace => {
-  //   io.of(namespace.endpoint).on('connection', namespaceSocket => {
-  //     console.log(namespaceSocket);
-  //     console.log(`${namespaceSocket.id} joined the ${namespace} namespace`);
-  //
-  //     namespaceSocket.emit(
-  //       'load_rooms',
-  //       namespaceController.getAllNamespaceRooms(namespace.id)
-  //     );
-  //   });
-  // });
+  namespaceController
+    .getAllNamespaces()
+    .then(namespaces =>
+      namespaces.map(item => {
+        console.log('NAMESPACE ID');
+        console.log(item);
+        io.of(`/${item._id}`).on('connection', namespaceSocket => {
+          console.log(namespaceSocket);
+          console.log(
+            `${namespaceSocket.id} joined the ${item.name} namespace`
+          );
+        });
+      })
+    )
+    .catch(error => console.log(error));
+
   app.use('/user', userRoutes);
-  app.use('/namespace', namespaceRoutes);
 });
