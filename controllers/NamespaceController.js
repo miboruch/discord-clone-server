@@ -1,4 +1,5 @@
 const Namespace = require('../models/Namespace');
+const User = require('../models/User');
 
 const getAllNamespaces = async () => {
   return await Namespace.find();
@@ -19,18 +20,15 @@ const createNewNamespace = async (name, ownerID, isPrivate, password) => {
   }
 };
 
-// getAllNamespaceRooms: async (socket, namespaceID) => {
-//   try {
-//     const namespaceRooms = await Namespace.find({ _id: namespaceID });
-//     socket.emit('load_namespace_rooms', namespaceRooms);
-//   } catch (error) {
-//     socket.emit('load_namespace_rooms_error', error);
-//   }
-// }
+const getAllUserNamespaces = async userID => {
+  const userOwnedNamespaces = await Namespace.find({ ownerID: userID });
+  const userJoinedNamespaces = await User.find({ _id: userID }, 'namespaces');
+
+  return { created: userOwnedNamespaces, joined: userJoinedNamespaces };
+};
 
 /*
   TODO:
-    - get all namespace rooms! (Room controller)
     - delete namespace
     - get namespace by ID
     - get namespace by name

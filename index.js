@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const socket = require('./socket');
 const namespaceController = require('./controllers/NamespaceController');
+const userController = require('./controllers/UserController');
 const roomController = require('./controllers/RoomController');
 require('dotenv').config();
 
@@ -34,6 +35,7 @@ connection.once('open', async () => {
   const server = app.listen(9000, () => console.log('Server is running'));
   const io = socket.init(server);
 
+  /* Main page connection */
   io.on('connection', async socket => {
     console.log(socket.id);
     socket.emit(
@@ -41,11 +43,13 @@ connection.once('open', async () => {
       await namespaceController.getAllNamespaces()
     );
 
+    /* User connected */
     socket.on('user_connected', ({ socketID, username }) => {
       console.log(socketID);
       console.log(username);
     });
 
+    /* Create new main room(namespace) */
     socket.on(
       'create_namespace',
       async ({ name, ownerID, isPrivate, password }) => {
@@ -55,10 +59,18 @@ connection.once('open', async () => {
           isPrivate,
           password
         );
+
         socket.emit('namespace_created', namespace);
       }
     );
 
+    /* Join to the main room */
+    socket.on('join_namespace', (userID, namespace) => {
+      /* update user object - User.namespaces -> push joined namespace */
+      userController.addNamespaceToUser(userID, namespace);
+    });
+
+    /* Disconnect */
     socket.on('disconnect', () => {
       console.log('DISCONNECTING');
       console.log(socket.id);
