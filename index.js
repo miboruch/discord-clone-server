@@ -5,6 +5,7 @@ const socket = require('./socket');
 const namespaceController = require('./controllers/NamespaceController');
 const userController = require('./controllers/UserController');
 const roomController = require('./controllers/RoomController');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const userRoutes = require('./routes/userRoutes');
@@ -35,12 +36,31 @@ connection.once('open', async () => {
   const server = app.listen(9000, () => console.log('Server is running'));
   const io = socket.init(server);
 
-  /* Main page connection */
-  io.on('connection', async socket => {
+  /* Socket with token authentication */
+  io.use((socket, next) => {
+    if (socket.handshake.query && socket.handshake.query.token) {
+      jwt.verify(
+        socket.handshake.query.token,
+        process.env.TOKEN_SECRET,
+        (error, decoded) => {
+          if (error) {
+            return next(new Error('Authentication error'));
+          }
+          socket.decoded = decoded;
+          next();
+        }
+      );
+    } else {
+      next(new Error('Authentication error'));
+    }
+    /* Main page connection */
+  }).on('connection', async socket => {
+    console.log(socket.decoded);
     console.log(socket.id);
+    /* send namespaces to the client */
     socket.emit(
       'load_namespaces',
-      await namespaceController.getAllNamespaces()
+      await namespaceController.getAllUserNamespaces(socket.decoded._id)
     );
 
     /* User connected */

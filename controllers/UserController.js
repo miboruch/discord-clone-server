@@ -28,7 +28,6 @@ const userRegister = async (req, res) => {
     password: hashedPassword,
     name: req.body.name,
     lastName: req.body.lastName,
-    nick: req.body.nick
   });
 
   try {

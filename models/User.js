@@ -19,10 +19,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  nick: {
-    type: String,
-    required: true
-  },
   namespaces: {
     type: Array,
     default: []
