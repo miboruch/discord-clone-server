@@ -6,8 +6,10 @@ const roomSchema = new mongoose.Schema({
     required: true,
     max: 255
   },
-  ownerID: {
-    type: mongoose.Schema.ObjectId
+  description: {
+    type: String,
+    required: true,
+    max: 255
   },
   namespaceID: {
     type: mongoose.Schema.ObjectId
@@ -15,11 +17,6 @@ const roomSchema = new mongoose.Schema({
   isPrivate: {
     type: Boolean,
     required: true
-  },
-  password: {
-    type: String,
-    required: true,
-    max: 1024
   }
 });
 

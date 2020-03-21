@@ -7,8 +7,7 @@ const namespaceSchema = new mongoose.Schema({
     max: 255
   },
   ownerID: {
-    // type: mongoose.Schema.ObjectId
-    type: String
+    type: mongoose.Schema.ObjectId
   },
   isPrivate: {
     type: Boolean,
