@@ -13,10 +13,6 @@ const roomSchema = new mongoose.Schema({
   },
   namespaceID: {
     type: mongoose.Schema.ObjectId
-  },
-  isPrivate: {
-    type: Boolean,
-    required: true
   }
 });
 

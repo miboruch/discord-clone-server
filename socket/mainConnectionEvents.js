@@ -1,8 +1,7 @@
 const namespaceController = require('../controllers/NamespaceController');
 const userController = require('../controllers/UserController');
 
-const mainConnectionSocket = async socket => {
-
+const mainConnectionEvents = async socket => {
   /* send namespaces to the client */
   socket.emit(
     'load_namespaces',
@@ -13,7 +12,6 @@ const mainConnectionSocket = async socket => {
   socket.on(
     'create_namespace',
     async ({ name, ownerID, isPrivate, password }) => {
-      // console.log('CREATE REQUEST');
       const namespace = await namespaceController.createNewNamespace(
         name,
         ownerID,
@@ -38,4 +36,4 @@ const mainConnectionSocket = async socket => {
   });
 };
 
-module.exports = mainConnectionSocket;
+module.exports = mainConnectionEvents;

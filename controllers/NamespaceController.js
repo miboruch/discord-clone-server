@@ -29,10 +29,10 @@ const getAllUserNamespaces = async userID => {
 
 /*
   TODO:
-    - delete namespace
-    - get namespace by ID
-    - get namespace by name
-   */
+    - delete namespace (only namespace owner)
+    - get namespace by ID (necessary for searching)
+    - get namespace by name (necessary for searching)
+*/
 
 module.exports = {
   getAllNamespaces,

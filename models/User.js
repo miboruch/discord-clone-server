@@ -23,6 +23,11 @@ const userSchema = new mongoose.Schema({
     type: Array,
     default: []
   },
+  /* ? */
+  friends: {
+    type: Array,
+    default: []
+  },
   createdDate: {
     type: Date,
     default: Date.now

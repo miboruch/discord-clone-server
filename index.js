@@ -3,12 +3,10 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const socket = require('./socket');
 const namespaceController = require('./controllers/NamespaceController');
-const userController = require('./controllers/UserController');
 const roomController = require('./controllers/RoomController');
-const jwt = require('jsonwebtoken');
 const socketAuthentication = require('./socket/socketAuthentication');
 require('dotenv').config();
-const mainConnectionSocket = require('./socket/mainConnectionSocket');
+const mainConnectionEvents = require('./socket/mainConnectionEvents');
 
 const userRoutes = require('./routes/userRoutes');
 
@@ -50,7 +48,7 @@ connection.once('open', async () => {
     ) {
       usersOnline.push({ userID: socket.decoded._id, tokenID: socket.id });
     }
-    await mainConnectionSocket(socket);
+    await mainConnectionEvents(socket);
   });
 
   /* namespace socket with authentication */
@@ -59,12 +57,26 @@ connection.once('open', async () => {
     .then(namespaces =>
       namespaces.map(item => {
         io.of(`/${item._id}`)
-          .use((socket, next) => {
-            socketAuthentication(socket, next);
+          .use((namespaceSocket, next) => {
+            socketAuthentication(namespaceSocket, next);
           })
           .on('connection', namespaceSocket => {
+            const currentNamespace = io.of(`/${item._id}`);
+
             namespaceSocket.emit('load_rooms', 'First room');
             namespaceSocket.emit('namespace_joined', item._id);
+
+            /* create room */
+            namespaceSocket.on('create_room', async ({ name, description }) => {
+              const savedRoom = await roomController.createNewRoom(
+                name,
+                description,
+                item._id
+              );
+
+              /* emit to everyone in the namespace */
+              currentNamespace.emit('room_created', savedRoom);
+            });
           });
       })
     )
