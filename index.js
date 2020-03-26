@@ -42,15 +42,17 @@ connection.once('open', async () => {
   io.use((socket, next) => {
     socketAuthentication(socket, next);
   }).on('connection', async socket => {
-    console.log(socket.decoded);
-    if (
-      !usersOnline.filter(item => item.userID === socket.decoded._id).length > 0
-    ) {
-      usersOnline.push({ userID: socket.decoded._id, tokenID: socket.id });
-    }
     await mainConnectionEvents(socket);
   });
 
+  const rooms = await roomController.getAllRooms();
+  const allRooms = rooms.map(room => {
+    return { id: room._id.toString(), users: [] };
+  });
+
+  console.log(allRooms);
+
+  const namespaceUsers = [];
   /* namespace socket with authentication */
   namespaceController
     .getAllNamespaces()
@@ -60,11 +62,36 @@ connection.once('open', async () => {
           .use((namespaceSocket, next) => {
             socketAuthentication(namespaceSocket, next);
           })
-          .on('connection', namespaceSocket => {
+          .on('connection', async namespaceSocket => {
             const currentNamespace = io.of(`/${item._id}`);
+            /* store in online users array */
+            if (
+              namespaceUsers.filter(
+                user => user.userID === namespaceSocket.decoded._id
+              ).length === 0
+            ) {
+              namespaceUsers.push({
+                socketID: namespaceSocket.id,
+                userID: namespaceSocket.decoded._id
+              });
+            }
+            console.log(namespaceUsers);
 
-            namespaceSocket.emit('load_rooms', 'First room');
+            namespaceSocket.leaveAll();
+
             namespaceSocket.emit('namespace_joined', item._id);
+
+            /* load rooms */
+            namespaceSocket.emit(
+              'load_rooms',
+              await roomController.getAllNamespaceRooms(item._id)
+            );
+
+            /* get namespace data */
+            namespaceSocket.emit(
+              'namespace_data',
+              await namespaceController.getNamespaceData(item._id)
+            );
 
             /* create room */
             namespaceSocket.on('create_room', async ({ name, description }) => {
@@ -76,6 +103,41 @@ connection.once('open', async () => {
 
               /* emit to everyone in the namespace */
               currentNamespace.emit('room_created', savedRoom);
+              namespaceSocket.join(savedRoom._id);
+              namespaceSocket.emit('user_joined', savedRoom._id);
+            });
+
+            /* join room */
+            namespaceSocket.on('join_room', roomID => {
+              const currentRoom = allRooms.find(room => room.id === roomID);
+              namespaceSocket.join(roomID);
+
+              console.log(`user joined room ${roomID}`);
+
+              if (
+                currentRoom.users.filter(
+                  userID => userID === namespaceSocket.decoded._id
+                ).length === 0
+              ) {
+                currentRoom.users.push(namespaceSocket.decoded._id);
+              }
+
+              namespaceSocket.emit('user_joined', roomID);
+            });
+
+            /* leave room */
+            namespaceSocket.on('leave_room', roomID => {
+              namespaceSocket.leave(roomID);
+
+              namespaceSocket.emit('user_left', roomID);
+              console.log(`User left room ${roomID}`);
+            });
+
+            namespaceSocket.on('disconnect', () => {
+              usersOnline.filter(
+                user => user.userID !== namespaceSocket.decoded._id
+              );
+              console.log('disconnected');
             });
           });
       })

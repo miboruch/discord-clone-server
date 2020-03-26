@@ -31,8 +31,7 @@ const mainConnectionEvents = async socket => {
 
   /* Disconnect */
   socket.on('disconnect', () => {
-    // console.log('DISCONNECTING');
-    // console.log(socket.id);
+    console.log('DISCONNECTING');
   });
 };
 

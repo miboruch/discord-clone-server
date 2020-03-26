@@ -22,9 +22,19 @@ const createNewNamespace = async (name, ownerID, isPrivate, password) => {
 
 const getAllUserNamespaces = async userID => {
   const userOwnedNamespaces = await Namespace.find({ ownerID: userID });
-  const [userJoinedNamespaces] = await User.find({ _id: userID }).select('namespaces');
+  const [userJoinedNamespaces] = await User.find({ _id: userID }).select(
+    'namespaces'
+  );
 
-  return { created: userOwnedNamespaces, joined: userJoinedNamespaces.namespaces };
+  return {
+    created: userOwnedNamespaces,
+    joined: userJoinedNamespaces.namespaces
+  };
+};
+
+const getNamespaceData = async namespaceID => {
+  const [namespace] = await Namespace.find({ _id: namespaceID });
+  return namespace;
 };
 
 /*
@@ -37,5 +47,6 @@ const getAllUserNamespaces = async userID => {
 module.exports = {
   getAllNamespaces,
   createNewNamespace,
-  getAllUserNamespaces
+  getAllUserNamespaces,
+  getNamespaceData
 };

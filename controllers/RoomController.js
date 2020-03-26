@@ -4,6 +4,10 @@ getAllNamespaceRooms = async namespaceID => {
   return await Room.find({ namespaceID: namespaceID });
 };
 
+getAllRooms = async () => {
+  return await Room.find();
+};
+
 createNewRoom = async (name, description, namespaceID) => {
   try {
     const newRoom = new Room({
@@ -20,5 +24,6 @@ createNewRoom = async (name, description, namespaceID) => {
 
 module.exports = {
   getAllNamespaceRooms,
-  createNewRoom
+  createNewRoom,
+  getAllRooms
 };

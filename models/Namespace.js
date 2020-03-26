@@ -17,6 +17,10 @@ const namespaceSchema = new mongoose.Schema({
     type: String,
     required: false,
     max: 1024
+  },
+  admins: {
+    type: Array,
+    default: []
   }
 });
 
