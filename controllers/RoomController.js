@@ -8,6 +8,10 @@ getAllRooms = async () => {
   return await Room.find();
 };
 
+getSingleRoomInfo = async roomID => {
+  return await Room.find({ _id: roomID });
+};
+
 createNewRoom = async (name, description, namespaceID) => {
   try {
     const newRoom = new Room({
@@ -24,6 +28,7 @@ createNewRoom = async (name, description, namespaceID) => {
 
 module.exports = {
   getAllNamespaceRooms,
-  createNewRoom,
-  getAllRooms
+  getAllRooms,
+  getSingleRoomInfo,
+  createNewRoom
 };
