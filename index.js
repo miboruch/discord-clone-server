@@ -53,7 +53,6 @@ connection.once('open', async () => {
   /* Add user to rooms array */
   const addToRoom = (roomID, userID) => {
     const room = allRooms.find(item => item.id === roomID);
-    console.log(room);
     const index = allRooms.indexOf(room);
 
     if (room.users.filter(user => user === userID).length === 0) {
@@ -65,7 +64,9 @@ connection.once('open', async () => {
 
   /* Remove user from rooms array */
   const removeFromRoom = (roomID, userID) => {
+    console.log(`REMOVE REQUEST ROOM ID: ${roomID} USER ID: ${userID}`);
     const room = allRooms.find(item => item.id === roomID);
+
     const index = allRooms.indexOf(room);
 
     allRooms[index].users = allRooms[index].users.filter(
@@ -130,15 +131,30 @@ connection.once('open', async () => {
               /* emit to everyone in the namespace */
               currentNamespace.emit('room_created', savedRoom);
               namespaceSocket.join(savedRoom._id);
-              namespaceSocket.emit('user_joined', savedRoom._id);
+              namespaceSocket.emit('user_joined', savedRoom._id.toString());
             });
 
             /* LEAVE ROOM */
             namespaceSocket.on('leave_room', roomID => {
-              namespaceSocket.leave(roomID);
               removeFromRoom(roomID, namespaceSocket.decoded._id);
-
+              namespaceSocket.leave(roomID);
               const currentRoom = allRooms.find(room => (room.id = roomID));
+
+              currentNamespace
+                .to(roomID)
+                .emit('members_update', currentRoom.users.length);
+
+              // currentNamespace.in(roomID).clients((error, clients) => {
+              //   currentNamespace
+              //       .in(roomID)
+              //       .emit('members_update', clients.length);
+              // });
+              namespaceSocket.emit('user_left', {
+                roomID: roomID
+              });
+              console.log('--------');
+              console.log('ON LEAVE ROOMS STATE');
+              console.log(allRooms);
 
               namespaceSocket.emit('user_left', {
                 roomID: roomID
@@ -156,15 +172,23 @@ connection.once('open', async () => {
                 namespaceSocket.decoded._id
               );
 
+              namespaceSocket.join(roomID);
+
               const [currentRoomInfo] = await roomController.getSingleRoomInfo(
                 roomID
               );
-              namespaceSocket.join(roomID);
+
+              currentNamespace.in(roomID).clients((error, clients) => {
+                currentNamespace
+                  .in(roomID)
+                  .emit('members_update', clients.length);
+              });
+
               namespaceSocket.emit('user_joined', {
                 room: currentRoomInfo
               });
 
-              currentNamespace.to(roomID).emit('members_update', roomMembers);
+              // currentNamespace.to(roomID).emit('members_update', roomMembers);
 
               namespaceSocket.emit('new_message', 'Welcome in new room');
 
@@ -175,6 +199,7 @@ connection.once('open', async () => {
 
             /* SEND RECEIVED MESSAGE */
             namespaceSocket.on('send_message', ({ message, room }) => {
+              /* save message to db */
               currentNamespace.to(room).emit('new_message', message);
             });
 
