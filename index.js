@@ -87,6 +87,7 @@ connection.once('open', async () => {
             socketAuthentication(namespaceSocket, next);
           })
           .on('connection', async namespaceSocket => {
+            console.log(namespaceSocket.decoded);
             const currentNamespace = io.of(`/${item._id}`);
 
             /* store in online users array */
@@ -136,18 +137,12 @@ connection.once('open', async () => {
 
             /* LEAVE ROOM */
             namespaceSocket.on('leave_room', roomName => {
-              // removeFromRoom(roomID, namespaceSocket.decoded._id);
-              namespaceSocket.leave(roomName);
-              // const currentRoom = allRooms.find(room => (room.id = roomName));
-
-              // currentNamespace
-              //   .to(roomID)
-              //   .emit('members_update', currentRoom.users.length);
-
-              currentNamespace.in(roomName).clients((error, clients) => {
-                currentNamespace
-                  .in(roomName)
-                  .emit('members_update', clients.length);
+              namespaceSocket.leave(roomName, () => {
+                currentNamespace.in(roomName).clients((error, clients) => {
+                  currentNamespace
+                    .in(roomName)
+                    .emit('members_update', clients.length);
+                });
               });
             });
 
@@ -158,38 +153,12 @@ connection.once('open', async () => {
                   currentRoomInfo
                 ] = await roomController.getSingleRoomInfo(roomID);
 
-                namespaceSocket.leaveAll();
-
-                /*
-                currentNamespace.in(roomName).clients((error, clients) => {
+                namespaceSocket.join(roomName, () => {
+                  currentNamespace.in(roomName).clients((error, clients) => {
                     currentNamespace
                       .in(roomName)
                       .emit('members_update', clients.length);
                   });
-                */
-
-                namespaceSocket.join(roomName, () => {
-                  currentNamespace.in(roomName).clients((error, clients) => {
-                    console.log(clients);
-                  });
-                  // console.log('first');
-                  // console.log(
-                  //   namespaceSocket.adapter.rooms[
-                  //     '5e7dd589231ee84c3d42411cAnother-test'
-                  //   ]
-                  // );
-                  // console.log('second');
-                  // console.log(
-                  //   namespaceSocket.adapter.rooms[
-                  //     '5e7dd69e3586654c4f43c775second-test'
-                  //   ]
-                  // );
-                  // console.log('third');
-                  // console.log(
-                  //   namespaceSocket.adapter.rooms[
-                  //     '5e7dd73ca4daf64c79dbb663Third-test'
-                  //   ]
-                  // );
                 });
 
                 namespaceSocket.emit('user_joined', {
@@ -210,13 +179,14 @@ connection.once('open', async () => {
             namespaceSocket.on('send_message', ({ message, room }) => {
               console.log(`Send ${message} message to room ${room}`);
               /* save message to db */
-              namespaceSocket.to(room).emit('new_message', message);
+              currentNamespace.to(room).emit('new_message', message);
             });
 
-            namespaceSocket.on('disconnect', () => {
+            namespaceSocket.on('namespace_disconnect', () => {
               usersOnline.filter(
                 user => user.userID !== namespaceSocket.decoded._id
               );
+              namespaceSocket.disconnect();
             });
           });
       })
