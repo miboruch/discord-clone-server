@@ -6,7 +6,6 @@ const {
   loginValidation
 } = require('../utils/AuthValidationSchema');
 
-
 const userRegister = async (req, res) => {
   const { error } = registerValidation(req.body);
 
@@ -27,7 +26,7 @@ const userRegister = async (req, res) => {
     email: req.body.email,
     password: hashedPassword,
     name: req.body.name,
-    lastName: req.body.lastName,
+    lastName: req.body.lastName
   });
 
   try {
@@ -38,7 +37,6 @@ const userRegister = async (req, res) => {
     res.status(500).send(err);
   }
 };
-
 
 const userLogin = async (req, res) => {
   const { error } = loginValidation(req.body);
@@ -54,23 +52,36 @@ const userLogin = async (req, res) => {
   if (!validPassword) return res.status(400).send('Invalid password');
 
   const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
-  res.header('auth-token', token).send({ token: token, id: user._id });
+  res.header('auth-token', token).send({
+    token: token,
+    id: user._id,
+    name: user.name,
+    lastName: user.lastName
+  });
 };
-
 
 const userLogout = (req, res) => {
   res.removeHeader('auth-token');
   res.send('User logout');
 };
 
-
 const addNamespaceToUser = async (userID, namespace) => {
   User.findOneAndUpdate({ _id: userID }, { $push: { namespaces: namespace } });
+};
+
+const getUserName = async (req, res) => {
+  const { _id } = req.user;
+  const user = await User.findOne({ _id: _id });
+
+  if (!user) return res.status(404).send('User not found');
+
+  res.send({ name: user.name, lastName: user.lastName });
 };
 
 module.exports = {
   userRegister,
   userLogin,
   userLogout,
-  addNamespaceToUser
+  addNamespaceToUser,
+  getUserName
 };

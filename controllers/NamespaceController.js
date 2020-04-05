@@ -28,7 +28,7 @@ const getAllUserNamespaces = async userID => {
 
   return {
     created: userOwnedNamespaces,
-    joined: userJoinedNamespaces.namespaces
+    joined: userJoinedNamespaces ? userJoinedNamespaces.namespaces : []
   };
 };
 

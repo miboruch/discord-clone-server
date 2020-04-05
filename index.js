@@ -7,6 +7,7 @@ const roomController = require('./controllers/RoomController');
 const socketAuthentication = require('./socket/socketAuthentication');
 require('dotenv').config();
 const mainConnectionEvents = require('./socket/mainConnectionEvents');
+const helperModule = require('./utils/helpers');
 
 const userRoutes = require('./routes/userRoutes');
 
@@ -118,6 +119,7 @@ connection.once('open', async () => {
 
             /* create room */
             namespaceSocket.on('create_room', async ({ name, description }) => {
+              console.log('CREATE ROOM');
               const savedRoom = await roomController.createNewRoom(
                 name,
                 description,
@@ -176,11 +178,21 @@ connection.once('open', async () => {
             });
 
             /* SEND RECEIVED MESSAGE */
-            namespaceSocket.on('send_message', ({ message, room }) => {
-              console.log(`Send ${message} message to room ${room}`);
-              /* save message to db */
-              currentNamespace.to(room).emit('new_message', message);
-            });
+            namespaceSocket.on(
+              'send_message',
+              ({ message, room, userName }) => {
+                /* save message to db */
+                currentNamespace.to(room).emit('new_message', {
+                  message,
+                  name: userName.name,
+                  lastName: userName.lastName,
+                  date: new Date().toLocaleString(
+                    'pl-PL',
+                    helperModule.dateOptions
+                  )
+                });
+              }
+            );
 
             namespaceSocket.on('namespace_disconnect', () => {
               usersOnline.filter(
