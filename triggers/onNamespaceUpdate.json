@@ -1,0 +1,12 @@
+{
+  "type": "DATABASE",
+  "name": "onNamespaceUpdate",
+  "function_name": "Atlas_Triggers_onNamespaceUpdate_1586253588",
+  "config": {
+    "service_name": "Cluster0",
+    "database": "test",
+    "collection": "namespaces",
+    "operation_types": ["INSERT, DELETE, UPDATE"],
+    "full_document": true
+  }
+}
