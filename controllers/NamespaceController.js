@@ -5,13 +5,14 @@ const getAllNamespaces = async () => {
   return await Namespace.find();
 };
 /* name, ownerID(from private route), isPrivate, password*/
-const createNewNamespace = async (name, ownerID, isPrivate, password) => {
+const createNewNamespace = async (name, ownerID, isPrivate, password, color) => {
   try {
     const newNamespace = new Namespace({
       name,
       ownerID,
       isPrivate,
-      password: isPrivate ? password : null
+      password: isPrivate ? password : null,
+      color
     });
 
     return await newNamespace.save();

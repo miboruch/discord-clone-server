@@ -12,12 +12,14 @@ const mainConnectionEvents = async socket => {
   /* Create new namespace */
   socket.on(
     'create_namespace',
-    async ({ name, ownerID, isPrivate, password }) => {
+    async ({ name, ownerID, isPrivate, password, color }) => {
+      console.log(name, ownerID, isPrivate, color);
       const namespace = await namespaceController.createNewNamespace(
         name,
         ownerID,
         isPrivate,
-        password
+        password,
+        color
       );
 
       socket.emit('namespace_created', namespace);

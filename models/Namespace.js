@@ -18,6 +18,10 @@ const namespaceSchema = new mongoose.Schema({
     required: false,
     max: 1024
   },
+  color: {
+    type: String,
+    required: true
+  },
   admins: {
     type: Array,
     default: []
