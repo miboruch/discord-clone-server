@@ -59,7 +59,7 @@ connection.once('open', async () => {
 
   namespaceEventEmitter.on('change', async change => {
     if (change.operationType === 'insert') {
-      namespaceModule.namespaces = await namespaceController.getAllNamespaces();
+      namespaceModule.namespaces = change.fullDocument;
     }
   });
 
@@ -119,8 +119,10 @@ connection.once('open', async () => {
               users: [namespaceSocket.decoded._id]
             });
 
+            const namespaceRooms = await roomController.getAllNamespaceRooms(item._id);
+
             /* emit to everyone in the namespace */
-            currentNamespace.emit('room_created', savedRoom);
+            currentNamespace.emit('room_created', namespaceRooms);
             namespaceSocket.join(savedRoom._id);
             namespaceSocket.emit('user_joined', savedRoom._id.toString());
           });

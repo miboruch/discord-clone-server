@@ -17,8 +17,15 @@ module.exports = {
   namespacesListener: function(value) {},
 
   set namespaces(value) {
-    this.namespacesArray = value;
-    this.namespacesListener(value);
+    /* check if value is an array or an single object */
+    if (value.length) {
+      this.namespacesArray = value;
+      this.namespacesListener(value);
+    } else {
+      this.namespacesArray = [...this.namespacesArray, value];
+      this.namespacesListener([value]);
+      /* put a single object as an array that we can use map later on */
+    }
   },
 
   get namespaces() {
