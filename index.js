@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const socket = require('./socket');
 const namespaceController = require('./controllers/NamespaceController');
 const roomController = require('./controllers/RoomController');
+const messageController = require('./controllers/MessageController');
 const socketAuthentication = require('./socket/socketAuthentication');
 const Namespace = require('./models/Namespace');
 const namespaceModule = require('./modules/namespacesModule');
@@ -64,9 +65,9 @@ connection.once('open', async () => {
   });
 
   /*
-  * it creates namespace array listener
-  * whenever we set namespaceModule.namespace - callback
-  * will be executed
+   * it creates namespace array listener
+   * whenever we set namespaceModule.namespace - callback
+   * will be executed
    */
   namespaceModule.subscribe(value => {
     value.map(item => {
@@ -119,7 +120,9 @@ connection.once('open', async () => {
               users: [namespaceSocket.decoded._id]
             });
 
-            const namespaceRooms = await roomController.getAllNamespaceRooms(item._id);
+            const namespaceRooms = await roomController.getAllNamespaceRooms(
+              item._id
+            );
 
             /* emit to everyone in the namespace */
             currentNamespace.emit('room_created', namespaceRooms);
@@ -162,7 +165,7 @@ connection.once('open', async () => {
 
               namespaceSocket.emit(
                 'history_catchup',
-                `THIS IS HISTORY OF ROOM ${roomName}`
+                await messageController.fetchHistoryMessages(roomName)
               );
             } catch (error) {
               namespaceSocket.emit('error', 'Error with joining to the room');
@@ -192,19 +195,29 @@ connection.once('open', async () => {
           /* SEND RECEIVED MESSAGE */
           namespaceSocket.on(
             'send_message',
-            ({ message, room, userName, userID }) => {
+            async ({ message, room, userName, userID }) => {
               /* save message to db */
               console.log('SEND MESSAGE ONCE');
-              currentNamespace.to(room).emit('new_message', {
+              console.log(`Message: ${message}`);
+              const savedMessage = await messageController.saveMessage(
                 message,
-                name: userName.name,
-                lastName: userName.lastName,
-                userID: userID,
-                date: new Date().toLocaleString(
-                  'pl-PL',
-                  helperModule.dateOptions
-                )
-              });
+                room,
+                userName.name,
+                userName.lastName,
+                userID
+              );
+
+              currentNamespace.to(room).emit('new_message', savedMessage);
+              // currentNamespace.to(room).emit('new_message', {
+              //   message,
+              //   name: userName.name,
+              //   lastName: userName.lastName,
+              //   userID: userID,
+              //   date: new Date().toLocaleString(
+              //     'pl-PL',
+              //     helperModule.dateOptions
+              //   )
+              // });
             }
           );
 
