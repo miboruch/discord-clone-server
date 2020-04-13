@@ -5,7 +5,13 @@ const getAllNamespaces = async () => {
   return await Namespace.find();
 };
 /* name, ownerID(from private route), isPrivate, password*/
-const createNewNamespace = async (name, ownerID, isPrivate, password, color) => {
+const createNewNamespace = async (
+  name,
+  ownerID,
+  isPrivate,
+  password,
+  color
+) => {
   try {
     const newNamespace = new Namespace({
       name,
@@ -34,8 +40,15 @@ const getAllUserNamespaces = async userID => {
 };
 
 const getNamespaceData = async namespaceID => {
-  const [namespace] = await Namespace.find({ _id: namespaceID });
-  return namespace;
+  return await Namespace.find({ _id: namespaceID });
+};
+
+const getNamespacesByName = async namespaceName => {
+  try {
+    return await Namespace.find({ name: { $regex: namespaceName } });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 /*
@@ -49,5 +62,6 @@ module.exports = {
   getAllNamespaces,
   createNewNamespace,
   getAllUserNamespaces,
-  getNamespaceData
+  getNamespaceData,
+  getNamespacesByName
 };

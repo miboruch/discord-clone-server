@@ -26,6 +26,18 @@ const mainConnectionEvents = async socket => {
     }
   );
 
+  socket.on('search_namespace_by_id', async namespaceID => {
+    const namespace = await namespaceController.getNamespaceData(namespaceID);
+    socket.emit('namespace_search_finished', namespace);
+  });
+
+  socket.on('search_namespace_by_name', async namespaceName => {
+    const namespaces = await namespaceController.getNamespacesByName(
+      namespaceName
+    );
+    socket.emit('namespace_search_finished', namespaces);
+  });
+
   /* Join to the main room */
   socket.on('join_namespace', (userID, namespace) => {
     /* update user object - User.namespaces -> push joined namespace */

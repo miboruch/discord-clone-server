@@ -172,6 +172,8 @@ connection.once('open', async () => {
             }
           });
 
+
+
           /* USER IS TYPING */
           namespaceSocket.on(
             'user_typing',
@@ -196,9 +198,6 @@ connection.once('open', async () => {
           namespaceSocket.on(
             'send_message',
             async ({ message, room, userName, userID }) => {
-              /* save message to db */
-              console.log('SEND MESSAGE ONCE');
-              console.log(`Message: ${message}`);
               const savedMessage = await messageController.saveMessage(
                 message,
                 room,
@@ -208,16 +207,6 @@ connection.once('open', async () => {
               );
 
               currentNamespace.to(room).emit('new_message', savedMessage);
-              // currentNamespace.to(room).emit('new_message', {
-              //   message,
-              //   name: userName.name,
-              //   lastName: userName.lastName,
-              //   userID: userID,
-              //   date: new Date().toLocaleString(
-              //     'pl-PL',
-              //     helperModule.dateOptions
-              //   )
-              // });
             }
           );
 
