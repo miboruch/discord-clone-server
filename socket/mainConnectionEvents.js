@@ -39,9 +39,14 @@ const mainConnectionEvents = async socket => {
   });
 
   /* Join to the main room */
-  socket.on('join_namespace', (userID, namespace) => {
+  socket.on('new_namespace_join', async ({ userID, namespace }) => {
     /* update user object - User.namespaces -> push joined namespace */
-    userController.addNamespaceToUser(userID, namespace);
+    await userController.addNamespaceToUser(userID, namespace);
+
+    socket.emit(
+      'load_namespaces',
+      await namespaceController.getAllUserNamespaces(userID)
+    );
   });
 
   /* Disconnect */

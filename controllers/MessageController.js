@@ -7,7 +7,8 @@ const saveMessage = async (message, roomID, name, lastName, userID) => {
       roomID,
       name,
       lastName,
-      userID
+      userID,
+      date: new Date()
     });
 
     return await newMessage.save();

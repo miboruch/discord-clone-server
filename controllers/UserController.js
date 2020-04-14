@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Namespace = require('../models/Namespace');
 const {
   registerValidation,
   loginValidation
@@ -66,7 +67,43 @@ const userLogout = (req, res) => {
 };
 
 const addNamespaceToUser = async (userID, namespace) => {
-  User.findOneAndUpdate({ _id: userID }, { $push: { namespaces: namespace } });
+  try {
+    const didAlreadyJoined =
+      (
+        await User.findOne({ _id: userID }).select({
+          namespaces: { $elemMatch: { _id: namespace._id } }
+        })
+      ).namespaces.length > 0;
+
+    const isOwner =
+      (await Namespace.find({
+        ownerID: userID,
+        _id: namespace._id
+      }).countDocuments()) > 0;
+
+    if (!isOwner && !didAlreadyJoined) {
+      await User.findOneAndUpdate(
+        { _id: userID },
+        { $push: { namespaces: namespace } }
+      );
+    } else {
+      console.log('ERROR');
+      /* emit socket */
+    }
+  } catch (error) {
+    /* emit socket with error */
+    console.log(error);
+  }
+};
+
+const removeNamespaceFromUser = async (userID, namespaceID) => {
+  await User.updateOne(
+    {
+      _id: userID
+      // namespaces: { $elemMatch: { _id: namespaceID } }
+    },
+    { $pull: { namespaces: { $elemMatch: { _id: namespaceID } } } }
+  );
 };
 
 const getUserName = async (req, res) => {
@@ -83,5 +120,7 @@ module.exports = {
   userLogin,
   userLogout,
   addNamespaceToUser,
-  getUserName
+  getUserName,
+  removeNamespaceFromUser
+  // removeNull
 };
