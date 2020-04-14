@@ -41,7 +41,7 @@ const mainConnectionEvents = async socket => {
   /* Join to the main room */
   socket.on('new_namespace_join', async ({ userID, namespace }) => {
     /* update user object - User.namespaces -> push joined namespace */
-    await userController.addNamespaceToUser(userID, namespace);
+    await userController.addNamespaceToUser(userID, namespace, socket);
 
     socket.emit(
       'load_namespaces',

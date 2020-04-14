@@ -66,7 +66,7 @@ const userLogout = (req, res) => {
   res.send('User logout');
 };
 
-const addNamespaceToUser = async (userID, namespace) => {
+const addNamespaceToUser = async (userID, namespace, socket) => {
   try {
     const didAlreadyJoined =
       (
@@ -86,13 +86,21 @@ const addNamespaceToUser = async (userID, namespace) => {
         { _id: userID },
         { $push: { namespaces: namespace } }
       );
+      socket.emit('information', {
+        type: 'success',
+        message: 'You have joined to the server'
+      });
     } else {
-      console.log('ERROR');
-      /* emit socket */
+      socket.emit('information', {
+        type: 'error',
+        message: 'You have already joined this server.'
+      });
     }
   } catch (error) {
-    /* emit socket with error */
-    console.log(error);
+    socket.emit('information', {
+      type: 'error',
+      message: 'You have already joined this server.'
+    });
   }
 };
 
@@ -122,5 +130,4 @@ module.exports = {
   addNamespaceToUser,
   getUserName,
   removeNamespaceFromUser
-  // removeNull
 };
