@@ -91,7 +91,7 @@ connection.once('open', async () => {
             });
           }
 
-          namespaceSocket.emit('namespace_joined', item._id);
+          namespaceSocket.emit('namespace_joined', item);
           console.log(`joined namespace ${item._id}`);
 
           /* load rooms */

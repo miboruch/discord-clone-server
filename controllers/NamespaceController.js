@@ -1,4 +1,6 @@
 const Namespace = require('../models/Namespace');
+const Room = require('../models/Room');
+const Message = require('../models/Message');
 const User = require('../models/User');
 
 const getAllNamespaces = async () => {
@@ -52,11 +54,14 @@ const getNamespacesByName = async namespaceName => {
 };
 
 /*
-  TODO:
-    - delete namespace (only namespace owner)
-    - get namespace by ID (necessary for searching)
-    - get namespace by name (necessary for searching)
-*/
+    * DELETE NAMESPACE
+    * - Remove namespace from database itself
+    * - Remove all rooms connected with this namespace
+    * - Remove all messages connected with rooms
+ */
+// const removeNamespace = async (namespaceID) => {
+//
+// }
 
 module.exports = {
   getAllNamespaces,

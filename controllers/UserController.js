@@ -104,14 +104,24 @@ const addNamespaceToUser = async (userID, namespace, socket) => {
   }
 };
 
-const removeNamespaceFromUser = async (userID, namespaceID) => {
-  await User.updateOne(
-    {
-      _id: userID
-      // namespaces: { $elemMatch: { _id: namespaceID } }
-    },
-    { $pull: { namespaces: { $elemMatch: { _id: namespaceID } } } }
-  );
+const removeNamespaceFromUser = async (namespaceID, userID) => {
+  try {
+    if (userID) {
+      return await User.updateOne(
+        {
+          _id: userID
+        },
+        { $pull: { namespaces: { _id: namespaceID } } }
+      );
+    } else {
+      return await User.updateMany(
+        {},
+        { $pull: { namespaces: { _id: namespaceID } } }
+      );
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const getUserName = async (req, res) => {

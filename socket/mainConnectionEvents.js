@@ -1,6 +1,7 @@
 const namespaceController = require('../controllers/NamespaceController');
 const userController = require('../controllers/UserController');
 const namespaceModule = require('../modules/namespacesModule');
+const roomController = require('../controllers/RoomController');
 
 const mainConnectionEvents = async socket => {
   /* send namespaces to the client */
@@ -37,6 +38,8 @@ const mainConnectionEvents = async socket => {
     );
     socket.emit('namespace_search_finished', namespaces);
   });
+
+  // await userController.removeNamespaceFromUser('5e973439d41a9d61e11721b0');
 
   /* Join to the main room */
   socket.on('new_namespace_join', async ({ userID, namespace }) => {

@@ -28,7 +28,16 @@ const fetchHistoryMessages = async (roomID, skip = 0) => {
   }
 };
 
+const removeMessages = async roomName => {
+  try {
+    await Message.deleteMany({ roomID: roomName });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
   saveMessage,
-  fetchHistoryMessages
+  fetchHistoryMessages,
+  removeMessages
 };
