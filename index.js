@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const slugify = require('slugify');
 const socket = require('./socket');
 const namespaceController = require('./controllers/NamespaceController');
 const roomController = require('./controllers/RoomController');
@@ -173,8 +174,6 @@ connection.once('open', async () => {
             }
           });
 
-
-
           /* USER IS TYPING */
           namespaceSocket.on(
             'user_typing',
@@ -210,6 +209,46 @@ connection.once('open', async () => {
               currentNamespace.to(room).emit('new_message', savedMessage);
             }
           );
+
+          /* DELETE NAMESPACE */
+          namespaceSocket.on('delete_namespace', async ({ namespaceID }) => {
+            currentNamespace.emit(
+              'leave_namespace',
+              'Namespace has been deleted'
+            );
+            await namespaceController.removeNamespace(namespaceID);
+            namespaceSocket.emit('information', {
+              type: 'success',
+              message: 'Namespace has been deleted'
+            });
+          });
+
+          /* refresh namespaces */
+          namespaceSocket.on('reload_namespaces', async ({ userID }) => {
+            namespaceSocket.emit(
+              'namespaces_reloaded',
+              await namespaceController.getAllUserNamespaces(userID)
+            );
+          });
+
+          namespaceSocket.on('delete_room', async ({ roomID, roomName }) => {
+            try {
+              const room = `${roomID}${slugify(roomName)}`;
+
+              currentNamespace.in(room).emit('leave_room', 'You have left this room');
+
+              currentNamespace.in(room).clients((error, clients) => {
+                console.log(clients);
+                clients.map(item => {
+                  currentNamespace.connected[item].leave(room);
+                });
+              });
+
+              await roomController.removeSingleRoom(roomID, roomName);
+            } catch (error) {
+              console.log(error);
+            }
+          });
 
           namespaceSocket.on('namespace_disconnect', () => {
             usersOnline.filter(
