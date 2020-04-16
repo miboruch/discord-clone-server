@@ -2,7 +2,6 @@ const namespaceController = require('../controllers/NamespaceController');
 const userController = require('../controllers/UserController');
 const namespaceModule = require('../modules/namespacesModule');
 const roomController = require('../controllers/RoomController');
-const socketModule = require('../modules/socketModule');
 
 const mainConnectionEvents = async socket => {
   /* send namespaces to the client */
