@@ -13,6 +13,8 @@ const namespaceModule = require('./modules/namespacesModule');
 require('dotenv').config();
 const mainConnectionEvents = require('./socket/mainConnectionEvents');
 const helperModule = require('./utils/helpers');
+const socketModule = require('./modules/socketModule');
+const namespaceConnectionEvents = require('./socket/namespaceConnectionEvents');
 
 const userRoutes = require('./routes/userRoutes');
 
@@ -56,8 +58,6 @@ connection.once('open', async () => {
     return { id: room._id.toString(), users: [] };
   });
 
-  const namespaceUsers = [];
-
   const namespaceEventEmitter = Namespace.watch();
 
   namespaceEventEmitter.on('change', async change => {
@@ -72,40 +72,39 @@ connection.once('open', async () => {
    * will be executed
    */
   namespaceModule.subscribe(value => {
-    value.map(item => {
-      io.of(`/${item._id}`)
+    value.map(namespace => {
+      io.of(`/${namespace._id}`)
         .use((namespaceSocket, next) => {
           socketAuthentication(namespaceSocket, next);
         })
         .on('connection', async namespaceSocket => {
-          console.log(namespaceSocket.decoded);
-          const currentNamespace = io.of(`/${item._id}`);
+          // socketModule.namespaceSocket = namespaceSocket;
+          const currentNamespace = io.of(`/${namespace._id}`);
 
           /* store in online users array */
-          if (
-            namespaceUsers.filter(
-              user => user.userID === namespaceSocket.decoded._id
-            ).length === 0
-          ) {
-            namespaceUsers.push({
-              socketID: namespaceSocket.id,
-              userID: namespaceSocket.decoded._id
-            });
-          }
+          // if (
+          //   namespaceUsers.filter(user => user.userID === namespaceSocket.decoded._id)
+          //     .length === 0
+          // ) {
+          //   namespaceUsers.push({
+          //     socketID: namespaceSocket.id,
+          //     userID: namespaceSocket.decoded._id
+          //   });
+          // }
 
-          namespaceSocket.emit('namespace_joined', item);
-          console.log(`joined namespace ${item._id}`);
+          namespaceSocket.emit('namespace_joined', namespace._id);
+          console.log(`joined namespace ${namespace._id}`);
 
           /* load rooms */
           namespaceSocket.emit(
             'load_rooms',
-            await roomController.getAllNamespaceRooms(item._id)
+            await roomController.getAllNamespaceRooms(namespace._id)
           );
 
           /* get namespace data */
           namespaceSocket.emit(
             'namespace_data',
-            await namespaceController.getNamespaceData(item._id)
+            await namespaceController.getNamespaceData(namespace._id)
           );
 
           /* create room */
@@ -114,7 +113,7 @@ connection.once('open', async () => {
             const savedRoom = await roomController.createNewRoom(
               name,
               description,
-              item._id
+              namespace._id
             );
 
             allRooms.push({
@@ -123,7 +122,7 @@ connection.once('open', async () => {
             });
 
             const namespaceRooms = await roomController.getAllNamespaceRooms(
-              item._id
+              namespace._id
             );
 
             /* emit to everyone in the namespace */
@@ -235,7 +234,9 @@ connection.once('open', async () => {
             try {
               const room = `${roomID}${slugify(roomName)}`;
 
-              currentNamespace.in(room).emit('leave_room', 'You have left this room');
+              currentNamespace
+                .in(room)
+                .emit('leave_room', 'You have left this room');
 
               currentNamespace.in(room).clients((error, clients) => {
                 console.log(clients);
@@ -245,6 +246,11 @@ connection.once('open', async () => {
               });
 
               await roomController.removeSingleRoom(roomID, roomName);
+
+              namespaceSocket.emit('information', {
+                type: 'success',
+                message: 'Room has been deleted'
+              });
             } catch (error) {
               console.log(error);
             }
