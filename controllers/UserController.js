@@ -97,10 +97,7 @@ const addNamespaceToUser = async (userID, namespace, socket) => {
       });
     }
   } catch (error) {
-    socket.emit('information', {
-      type: 'error',
-      message: 'You have already joined this server.'
-    });
+    console.log(error);
   }
 };
 

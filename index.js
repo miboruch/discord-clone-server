@@ -1,12 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const slugify = require('slugify');
 const socket = require('./socket');
 const namespaceController = require('./controllers/NamespaceController');
-const roomController = require('./controllers/RoomController');
-const messageController = require('./controllers/MessageController');
-const userController = require('./controllers/UserController');
 const socketAuthentication = require('./socket/socketAuthentication');
 const Namespace = require('./models/Namespace');
 const namespaceModule = require('./modules/namespacesModule');
@@ -47,6 +43,7 @@ connection.once('open', async () => {
   io.use((socket, next) => {
     socketAuthentication(socket, next);
   }).on('connection', async socket => {
+    console.log(socket.decoded);
     await mainConnectionEvents(socket);
   });
 
@@ -70,7 +67,7 @@ connection.once('open', async () => {
           socketAuthentication(namespaceSocket, next);
         })
         .on('connection', async namespaceSocket => {
-          await namespaceConnectionEvent(namespaceSocket, namespace)
+          await namespaceConnectionEvent(namespaceSocket, namespace);
         });
     });
   });

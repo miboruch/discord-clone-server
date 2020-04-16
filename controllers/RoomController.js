@@ -15,7 +15,12 @@ const getSingleRoomInfo = async roomID => {
   return await Room.find({ _id: roomID });
 };
 
-const createNewRoom = async (name, description, namespaceID) => {
+const createNewRoom = async (
+  name,
+  description,
+  namespaceID,
+  namespaceSocket
+) => {
   try {
     const newRoom = new Room({
       name,
@@ -23,34 +28,46 @@ const createNewRoom = async (name, description, namespaceID) => {
       namespaceID
     });
 
-    return await newRoom.save();
+    const savedRoom = await newRoom.save();
+    namespaceSocket.join(savedRoom._id);
+    namespaceSocket.emit('user_joined', savedRoom._id.toString());
+    namespaceSocket.emit('information', {
+      type: 'success',
+      message: `${savedRoom.name} has been created`
+    });
   } catch (error) {
-    throw new Error(error);
+    namespaceSocket.emit('information', {
+      type: 'error',
+      message: 'Problem with creating new room'
+    });
   }
 };
 
 /*
-    * 1. Remove all messages from this room
-    * 2. Remove room itself
-*/
-const removeSingleRoom = async (roomID, roomName) => {
+ * 1. Remove all messages from this room
+ * 2. Remove room itself
+ */
+const removeSingleRoom = async (roomID, roomName, namespaceSocket) => {
   try {
     await messageController.removeMessages(`${roomID}${slugify(roomName)}`);
     await Room.findOneAndDelete({ _id: roomID });
     /* emit namespaceSocket load rooms */
     /* emit namespaceSocket success */
+    namespaceSocket.emit('information', {
+      type: 'success',
+      message: 'Room has been deleted'
+    });
   } catch (error) {
-    /* emit namespaceSocket error */
     console.log(error);
   }
 };
 
 /*
-    * Necessary when namespace is being deleted
-    * 1. Find all rooms in the namespace
-    * 2. Remove all messages from every single room in this namespace
-    * 3. Remove room itself
-*/
+ * Necessary when namespace is being deleted
+ * 1. Find all rooms in the namespace
+ * 2. Remove all messages from every single room in this namespace
+ * 3. Remove room itself
+ */
 const removeRooms = async namespaceID => {
   try {
     const rooms = await getAllNamespaceRooms(namespaceID);

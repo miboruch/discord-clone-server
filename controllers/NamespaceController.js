@@ -8,13 +8,14 @@ const userController = require('../controllers/UserController');
 const getAllNamespaces = async () => {
   return await Namespace.find();
 };
-/* name, ownerID(from private route), isPrivate, password*/
+
 const createNewNamespace = async (
   name,
   ownerID,
   isPrivate,
   password,
-  color
+  color,
+  socket
 ) => {
   try {
     const newNamespace = new Namespace({
@@ -25,9 +26,17 @@ const createNewNamespace = async (
       color
     });
 
-    return await newNamespace.save();
+    const savedNamespace = await newNamespace.save();
+    socket.emit('namespace_created', savedNamespace);
+    socket.emit('information', {
+      type: 'success',
+      message: `${savedNamespace.name} server has been created`
+    });
   } catch (error) {
-    console.log(error);
+    socket.emit('information', {
+      type: 'error',
+      message: 'Problems with creating namespace'
+    });
   }
 };
 
@@ -60,17 +69,24 @@ const getNamespacesByName = async namespaceName => {
  * - Remove all messages connected with rooms
  * - Remove all rooms connected with this namespace
  * - Remove namespace from database itself
-*/
+ */
 
-const removeNamespace = async namespaceID => {
+const removeNamespace = async (namespaceID, namespaceSocket) => {
   try {
     await roomController.removeRooms(namespaceID);
     // This will remove all messages and rooms itself
     await userController.removeNamespaceFromUser(namespaceID);
 
     await Namespace.findOneAndDelete({ _id: namespaceID });
+    namespaceSocket.emit('information', {
+      type: 'success',
+      message: 'Server has been deleted'
+    });
   } catch (error) {
-    console.log(error);
+    namespaceSocket.emit('information', {
+      type: 'error',
+      message: 'Problem with deleting server'
+    });
   }
 };
 
