@@ -39,8 +39,6 @@ const mainConnectionEvents = async socket => {
     socket.emit('namespace_search_finished', namespaces);
   });
 
-  // await userController.removeNamespaceFromUser('5e973439d41a9d61e11721b0');
-
   /* Join to the main room */
   socket.on('new_namespace_join', async ({ userID, namespace }) => {
     /* update user object - User.namespaces -> push joined namespace */
@@ -49,6 +47,22 @@ const mainConnectionEvents = async socket => {
     socket.emit(
       'load_namespaces',
       await namespaceController.getAllUserNamespaces(userID)
+    );
+  });
+
+  socket.on('leave_namespace', async ({ namespaceID, userID }) => {
+    await userController.removeNamespaceFromUser(namespaceID, userID);
+
+    /* move it into controller */
+    socket.emit('information', {
+      type: 'success',
+      message: 'You have been removed from this server'
+    });
+
+    socket.emit('left_namespace', 'You have left the server');
+    socket.emit(
+      'load_namespaces',
+      await namespaceController.getAllUserNamespaces(socket.decoded._id)
     );
   });
 

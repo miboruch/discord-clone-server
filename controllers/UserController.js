@@ -104,6 +104,7 @@ const addNamespaceToUser = async (userID, namespace, socket) => {
   }
 };
 
+/* Leave room */
 const removeNamespaceFromUser = async (namespaceID, userID) => {
   try {
     if (userID) {

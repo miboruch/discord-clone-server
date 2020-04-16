@@ -2,6 +2,8 @@ const Namespace = require('../models/Namespace');
 const Room = require('../models/Room');
 const Message = require('../models/Message');
 const User = require('../models/User');
+const roomController = require('../controllers/RoomController');
+const userController = require('../controllers/UserController');
 
 const getAllNamespaces = async () => {
   return await Namespace.find();
@@ -54,19 +56,29 @@ const getNamespacesByName = async namespaceName => {
 };
 
 /*
-    * DELETE NAMESPACE
-    * - Remove namespace from database itself
-    * - Remove all rooms connected with this namespace
-    * - Remove all messages connected with rooms
- */
-// const removeNamespace = async (namespaceID) => {
-//
-// }
+ * DELETE NAMESPACE
+ * - Remove all messages connected with rooms
+ * - Remove all rooms connected with this namespace
+ * - Remove namespace from database itself
+*/
+
+const removeNamespace = async namespaceID => {
+  try {
+    await roomController.removeRooms(namespaceID);
+    // This will remove all messages and rooms itself
+    await userController.removeNamespaceFromUser(namespaceID);
+
+    await Namespace.findOneAndDelete({ _id: namespaceID });
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 module.exports = {
   getAllNamespaces,
   createNewNamespace,
   getAllUserNamespaces,
   getNamespaceData,
-  getNamespacesByName
+  getNamespacesByName,
+  removeNamespace
 };

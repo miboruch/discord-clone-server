@@ -5,6 +5,7 @@ const socket = require('./socket');
 const namespaceController = require('./controllers/NamespaceController');
 const roomController = require('./controllers/RoomController');
 const messageController = require('./controllers/MessageController');
+const userController = require('./controllers/UserController');
 const socketAuthentication = require('./socket/socketAuthentication');
 const Namespace = require('./models/Namespace');
 const namespaceModule = require('./modules/namespacesModule');
