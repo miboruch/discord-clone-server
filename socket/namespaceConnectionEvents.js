@@ -36,12 +36,6 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
     await namespaceController.getNamespaceUsers(namespace._id)
   );
 
-  // /* get namespace data */
-  // namespaceSocket.emit(
-  //   'namespace_data',
-  //   await namespaceController.getNamespaceData(namespace._id)
-  // );
-
   /* DELETE NAMESPACE */
   namespaceSocket.on('delete_namespace', async ({ namespaceID }) => {
     await namespaceController.removeNamespace(
@@ -72,7 +66,6 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
       await namespaceController.getNamespaceUsers(namespace._id)
     );
 
-    /*  */
     namespaceSocket.emit('information', {
       type: 'success',
       message: 'You have been removed from this server'

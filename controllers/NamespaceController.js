@@ -4,6 +4,7 @@ const Message = require('../models/Message');
 const User = require('../models/User');
 const roomController = require('../controllers/RoomController');
 const userController = require('../controllers/UserController');
+const onlineUsers = require('../modules/onlineUsers');
 
 const getAllNamespaces = async () => {
   return await Namespace.find();
@@ -69,12 +70,25 @@ const getNamespaceUsers = async namespaceID => {
     const { ownerID } = await Namespace.findOne({
       _id: namespaceID
     }).select('ownerID');
+    const result = [];
+
     const ownerUserData = await userController.getUserData(ownerID);
     const joinedUsers = await userController.getNamespaceUsers(
       namespaceID.toString()
     );
 
-    return [ownerUserData, ...joinedUsers];
+    result.push(
+      userController.checkIfUserOnline(ownerUserData, onlineUsers.onlineUsers)
+    );
+    joinedUsers.map(user => {
+      result.push(
+        userController.checkIfUserOnline(user, onlineUsers.onlineUsers)
+      );
+    });
+
+    console.log(result);
+
+    return result;
   } catch (error) {
     console.log(error);
   }

@@ -151,6 +151,14 @@ const getNamespaceUsers = async namespaceID => {
   }
 };
 
+const checkIfUserOnline = (object, onlineArray) => {
+  return onlineArray.some(
+      onlineUser => onlineUser.userID === object._id.toString()
+  )
+      ? { ...object.toObject(), isOnline: true }
+      : { ...object.toObject(), isOnline: true };
+};
+
 module.exports = {
   userRegister,
   userLogin,
@@ -159,5 +167,6 @@ module.exports = {
   getUserName,
   removeNamespaceFromUser,
   getUserData,
-  getNamespaceUsers
+  getNamespaceUsers,
+  checkIfUserOnline
 };

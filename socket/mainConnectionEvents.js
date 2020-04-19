@@ -4,20 +4,18 @@ const onlineUsers = require('../modules/onlineUsers');
 
 const mainConnectionEvents = async socket => {
   if (
-    onlineUsers.onlineUsers.filter(user => user.userID === socket.decoded._id)
-      .length === 0
+    onlineUsers.onlineUsers.some(user => user.userID === socket.decoded._id)
   ) {
-    onlineUsers.onlineUsers.push({
-      socketID: socket.id,
-      userID: socket.decoded._id
-    });
-  } else {
     const index = onlineUsers.onlineUsers.findIndex(
       item => item.userID === socket.decoded._id
     );
     onlineUsers.onlineUsers[index].socketID = socket.id;
+  } else {
+    onlineUsers.onlineUsers.push({
+      socketID: socket.id,
+      userID: socket.decoded._id
+    });
   }
-  console.log(onlineUsers.onlineUsers);
 
   /* send namespaces to the client */
   socket.emit(
@@ -66,6 +64,12 @@ const mainConnectionEvents = async socket => {
   /* Disconnect */
   socket.on('disconnect', () => {
     console.log('DISCONNECTING');
+    const index = onlineUsers.onlineUsers.findIndex(
+      item => item.userID === socket.decoded._id
+    );
+    console.log(index);
+    index > -1 && onlineUsers.onlineUsers.splice(index, 1);
+    console.log(onlineUsers.onlineUsers);
   });
 };
 
