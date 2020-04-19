@@ -70,7 +70,9 @@ const getNamespaceUsers = async namespaceID => {
       _id: namespaceID
     }).select('ownerID');
     const ownerUserData = await userController.getUserData(ownerID);
-    const joinedUsers = await userController.getNamespaceUsers(namespaceID.toString());
+    const joinedUsers = await userController.getNamespaceUsers(
+      namespaceID.toString()
+    );
 
     return [ownerUserData, ...joinedUsers];
   } catch (error) {

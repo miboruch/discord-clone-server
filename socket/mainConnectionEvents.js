@@ -63,22 +63,6 @@ const mainConnectionEvents = async socket => {
     );
   });
 
-  socket.on('leave_namespace', async ({ namespaceID, userID }) => {
-    await userController.removeNamespaceFromUser(namespaceID, userID);
-
-    /* move it into controller */
-    socket.emit('information', {
-      type: 'success',
-      message: 'You have been removed from this server'
-    });
-
-    socket.emit('left_namespace', 'You have left the server');
-    socket.emit(
-      'load_namespaces',
-      await namespaceController.getAllUserNamespaces(socket.decoded._id)
-    );
-  });
-
   /* Disconnect */
   socket.on('disconnect', () => {
     console.log('DISCONNECTING');

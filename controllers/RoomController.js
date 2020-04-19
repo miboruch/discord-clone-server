@@ -47,18 +47,41 @@ const createNewRoom = async (
  * 1. Remove all messages from this room
  * 2. Remove room itself
  */
-const removeSingleRoom = async (roomID, roomName, namespaceSocket) => {
+const removeSingleRoom = async (
+  roomID,
+  roomName,
+  namespaceID,
+  namespaceSocket,
+  currentNamespace
+) => {
   try {
-    await messageController.removeMessages(`${roomID}${slugify(roomName)}`);
+    const room = `${roomID}${slugify(roomName)}`;
+
+    currentNamespace.in(room).emit('leave_room');
+
+    currentNamespace.in(room).clients((error, clients) => {
+      clients.map(item => {
+        currentNamespace.connected[item].leave(room);
+      });
+    });
+
+    await messageController.removeMessages(room);
     await Room.findOneAndDelete({ _id: roomID });
-    /* emit namespaceSocket load rooms */
-    /* emit namespaceSocket success */
+
+    currentNamespace.emit(
+      'load_rooms',
+      await getAllNamespaceRooms(namespaceID)
+    );
+
     namespaceSocket.emit('information', {
       type: 'success',
       message: 'Room has been deleted'
     });
   } catch (error) {
-    console.log(error);
+    namespaceSocket.emit('information', {
+      type: 'error',
+      message: 'Problem with deleting room'
+    });
   }
 };
 

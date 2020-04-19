@@ -3,6 +3,7 @@ const socket = require('../socket');
 const roomController = require('../controllers/RoomController');
 const namespaceController = require('../controllers/NamespaceController');
 const messageController = require('../controllers/MessageController');
+const userController = require('../controllers/UserController');
 
 const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
   const currentNamespace = socket.getIO().of(`/${namespace._id}`);
@@ -28,16 +29,18 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
    */
 
   //! NAMESPACES
-  namespaceSocket.emit(
-    'namespace_joined',
-    ({namespace: namespace, users: await namespaceController.getNamespaceUsers(namespace._id)})
+  namespaceSocket.emit('namespace_joined', namespace);
+
+  currentNamespace.emit(
+    'update_users',
+    await namespaceController.getNamespaceUsers(namespace._id)
   );
 
-  /* get namespace data */
-  namespaceSocket.emit(
-    'namespace_data',
-    await namespaceController.getNamespaceData(namespace._id)
-  );
+  // /* get namespace data */
+  // namespaceSocket.emit(
+  //   'namespace_data',
+  //   await namespaceController.getNamespaceData(namespace._id)
+  // );
 
   /* DELETE NAMESPACE */
   namespaceSocket.on('delete_namespace', async ({ namespaceID }) => {
@@ -52,6 +55,33 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
   namespaceSocket.on('reload_namespaces', async ({ userID }) => {
     namespaceSocket.emit(
       'namespaces_reloaded',
+      await namespaceController.getAllUserNamespaces(userID)
+    );
+  });
+
+  /* leave namespace */
+  namespaceSocket.on('leave_namespace', async ({ namespaceID, userID }) => {
+    await userController.removeNamespaceFromUser(
+      namespaceID,
+      userID,
+      namespaceSocket
+    );
+
+    currentNamespace.emit(
+      'update_users',
+      await namespaceController.getNamespaceUsers(namespace._id)
+    );
+
+    /*  */
+    namespaceSocket.emit('information', {
+      type: 'success',
+      message: 'You have been removed from this server'
+    });
+
+    namespaceSocket.emit('left_namespace', 'You have left the server');
+
+    namespaceSocket.emit(
+      'load_namespaces',
       await namespaceController.getAllUserNamespaces(userID)
     );
   });
@@ -120,33 +150,13 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
   namespaceSocket.on(
     'delete_room',
     async ({ roomID, roomName, namespaceID }) => {
-      try {
-        const room = `${roomID}${slugify(roomName)}`;
-
+      await roomController.removeSingleRoom(
+        roomID,
+        roomName,
+        namespaceID,
+        namespaceSocket,
         currentNamespace
-          .in(room)
-          .emit(
-            'leave_room',
-            await roomController.getAllNamespaceRooms(namespaceID)
-          );
-
-        currentNamespace.in(room).clients((error, clients) => {
-          clients.map(item => {
-            currentNamespace.connected[item].leave(room);
-          });
-        });
-
-        await roomController.removeSingleRoom(
-          roomID,
-          roomName,
-          namespaceSocket
-        );
-      } catch (error) {
-        namespaceSocket.emit('information', {
-          type: 'error',
-          message: 'Problem with deleting room'
-        });
-      }
+      );
     }
   );
 
