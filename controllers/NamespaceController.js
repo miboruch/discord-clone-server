@@ -64,6 +64,20 @@ const getNamespacesByName = async namespaceName => {
   }
 };
 
+const getNamespaceUsers = async namespaceID => {
+  try {
+    const { ownerID } = await Namespace.findOne({
+      _id: namespaceID
+    }).select('ownerID');
+    const ownerUserData = await userController.getUserData(ownerID);
+    const joinedUsers = await userController.getNamespaceUsers(namespaceID.toString());
+
+    return [ownerUserData, ...joinedUsers];
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 /*
  * DELETE NAMESPACE
  * - Remove all messages connected with rooms
@@ -71,16 +85,21 @@ const getNamespacesByName = async namespaceName => {
  * - Remove namespace from database itself
  */
 
-const removeNamespace = async (namespaceID, namespaceSocket) => {
+const removeNamespace = async (
+  namespaceID,
+  namespaceSocket,
+  currentNamespace
+) => {
   try {
     await roomController.removeRooms(namespaceID);
     // This will remove all messages and rooms itself
     await userController.removeNamespaceFromUser(namespaceID);
 
     await Namespace.findOneAndDelete({ _id: namespaceID });
-    namespaceSocket.emit('information', {
+    currentNamespace.emit('leave_namespace', namespaceID);
+    currentNamespace.emit('information', {
       type: 'success',
-      message: 'Server has been deleted'
+      message: 'This server has been deleted'
     });
   } catch (error) {
     namespaceSocket.emit('information', {
@@ -96,5 +115,6 @@ module.exports = {
   getAllUserNamespaces,
   getNamespaceData,
   getNamespacesByName,
-  removeNamespace
+  removeNamespace,
+  getNamespaceUsers
 };

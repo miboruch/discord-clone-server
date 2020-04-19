@@ -28,7 +28,10 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
    */
 
   //! NAMESPACES
-  namespaceSocket.emit('namespace_joined', namespace);
+  namespaceSocket.emit(
+    'namespace_joined',
+    ({namespace: namespace, users: await namespaceController.getNamespaceUsers(namespace._id)})
+  );
 
   /* get namespace data */
   namespaceSocket.emit(
@@ -38,8 +41,11 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
 
   /* DELETE NAMESPACE */
   namespaceSocket.on('delete_namespace', async ({ namespaceID }) => {
-    currentNamespace.emit('leave_namespace', 'Namespace has been deleted');
-    await namespaceController.removeNamespace(namespaceID, namespaceSocket);
+    await namespaceController.removeNamespace(
+      namespaceID,
+      namespaceSocket,
+      currentNamespace
+    );
   });
 
   /* refresh namespaces */
@@ -85,6 +91,7 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
 
   //* LEAVE ROOM
   namespaceSocket.on('leave_room', roomName => {
+    console.log(`LEAVE ROOM ${roomName}`);
     namespaceSocket.leave(roomName, () => {
       currentNamespace.in(roomName).clients((error, clients) => {
         currentNamespace.in(roomName).emit('members_update', clients.length);
@@ -110,26 +117,38 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
   });
 
   //* DELETE ROOM
-  namespaceSocket.on('delete_room', async ({ roomID, roomName }) => {
-    try {
-      const room = `${roomID}${slugify(roomName)}`;
+  namespaceSocket.on(
+    'delete_room',
+    async ({ roomID, roomName, namespaceID }) => {
+      try {
+        const room = `${roomID}${slugify(roomName)}`;
 
-      currentNamespace.in(room).emit('leave_room', 'You have left this room');
+        currentNamespace
+          .in(room)
+          .emit(
+            'leave_room',
+            await roomController.getAllNamespaceRooms(namespaceID)
+          );
 
-      currentNamespace.in(room).clients((error, clients) => {
-        clients.map(item => {
-          currentNamespace.connected[item].leave(room);
+        currentNamespace.in(room).clients((error, clients) => {
+          clients.map(item => {
+            currentNamespace.connected[item].leave(room);
+          });
         });
-      });
 
-      await roomController.removeSingleRoom(roomID, roomName, namespaceSocket);
-    } catch (error) {
-      namespaceSocket.emit('information', {
-        type: 'error',
-        message: 'Problem with deleting room'
-      });
+        await roomController.removeSingleRoom(
+          roomID,
+          roomName,
+          namespaceSocket
+        );
+      } catch (error) {
+        namespaceSocket.emit('information', {
+          type: 'error',
+          message: 'Problem with deleting room'
+        });
+      }
     }
-  });
+  );
 
   //! MESSAGES
 

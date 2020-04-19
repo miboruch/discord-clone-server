@@ -131,11 +131,34 @@ const getUserName = async (req, res) => {
   res.send({ name: user.name, lastName: user.lastName });
 };
 
+const getUserData = async userID => {
+  try {
+    return await User.findOne({ _id: userID }, { name: 1, lastName: 1 });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getNamespaceUsers = async namespaceID => {
+  try {
+    return await User.find(
+      {
+        namespaces: { $elemMatch: { _id: namespaceID } }
+      },
+      { name: 1, lastName: 1 }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
   userRegister,
   userLogin,
   userLogout,
   addNamespaceToUser,
   getUserName,
-  removeNamespaceFromUser
+  removeNamespaceFromUser,
+  getUserData,
+  getNamespaceUsers
 };
