@@ -73,6 +73,8 @@ const removeSingleRoom = async (
       await getAllNamespaceRooms(namespaceID)
     );
 
+    currentNamespace.emit('room_deleted', namespaceID);
+
     namespaceSocket.emit('information', {
       type: 'success',
       message: 'Room has been deleted'

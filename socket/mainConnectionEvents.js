@@ -67,9 +67,7 @@ const mainConnectionEvents = async socket => {
     const index = onlineUsers.onlineUsers.findIndex(
       item => item.userID === socket.decoded._id
     );
-    console.log(index);
     index > -1 && onlineUsers.onlineUsers.splice(index, 1);
-    console.log(onlineUsers.onlineUsers);
   });
 };
 

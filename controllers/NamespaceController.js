@@ -86,8 +86,6 @@ const getNamespaceUsers = async namespaceID => {
       );
     });
 
-    console.log(result);
-
     return result;
   } catch (error) {
     console.log(error);

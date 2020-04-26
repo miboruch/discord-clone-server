@@ -21,8 +21,24 @@ const saveMessage = async (message, roomID, name, lastName, userID) => {
 const fetchHistoryMessages = async (roomID, skip = 0) => {
   try {
     return await Message.find({ roomID: roomID })
-      .skip(skip)
+      .sort({ date: -1 })
+      .limit(20);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const fetchHistoryMessagesByDate = async (roomID, date, namespaceSocket) => {
+  try {
+    const messages = await Message.find({
+      roomID: roomID,
+      date: { $lt: date }
+    })
+      .sort({ date: -1 })
       .limit(10);
+
+    console.log(messages);
+    namespaceSocket.emit('load_history', messages);
   } catch (error) {
     console.log(error);
   }
@@ -39,5 +55,6 @@ const removeMessages = async roomName => {
 module.exports = {
   saveMessage,
   fetchHistoryMessages,
-  removeMessages
+  removeMessages,
+  fetchHistoryMessagesByDate
 };

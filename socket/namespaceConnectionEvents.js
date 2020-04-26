@@ -187,6 +187,10 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
     }
   );
 
+  namespaceSocket.on('load_history_by_data', async ({roomID, date}) => {
+    await messageController.fetchHistoryMessagesByDate(roomID, date, namespaceSocket);
+  })
+
   namespaceSocket.on('namespace_disconnect', () => {
     usersOnline.filter(user => user.userID !== namespaceSocket.decoded._id);
     // namespaceSocket.disconnect();
