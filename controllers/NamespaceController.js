@@ -70,23 +70,13 @@ const getNamespaceUsers = async namespaceID => {
     const { ownerID } = await Namespace.findOne({
       _id: namespaceID
     }).select('ownerID');
-    const result = [];
 
     const ownerUserData = await userController.getUserData(ownerID);
     const joinedUsers = await userController.getNamespaceUsers(
       namespaceID.toString()
     );
 
-    result.push(
-      userController.checkIfUserOnline(ownerUserData, onlineUsers.onlineUsers)
-    );
-    joinedUsers.map(user => {
-      result.push(
-        userController.checkIfUserOnline(user, onlineUsers.onlineUsers)
-      );
-    });
-
-    return result;
+    return [ownerUserData, ...joinedUsers];
   } catch (error) {
     console.log(error);
   }

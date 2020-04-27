@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema({
     type: Array,
     default: []
   },
+  isOnline: {
+    type: Boolean,
+    default: false
+  },
   /* ? */
   friends: {
     type: Array,

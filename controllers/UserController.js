@@ -132,7 +132,7 @@ const getUserName = async (req, res) => {
 
 const getUserData = async userID => {
   try {
-    return await User.findOne({ _id: userID }, { name: 1, lastName: 1 });
+    return await User.findOne({ _id: userID }, { name: 1, lastName: 1, isOnline: 1 });
   } catch (error) {
     console.log(error);
   }
@@ -144,7 +144,7 @@ const getNamespaceUsers = async namespaceID => {
       {
         namespaces: { $elemMatch: { _id: namespaceID } }
       },
-      { name: 1, lastName: 1 }
+      { name: 1, lastName: 1, isOnline: 1 }
     );
   } catch (error) {
     console.log(error);
@@ -153,10 +153,18 @@ const getNamespaceUsers = async namespaceID => {
 
 const checkIfUserOnline = (object, onlineArray) => {
   return onlineArray.some(
-      onlineUser => onlineUser.userID === object._id.toString()
+    onlineUser => onlineUser.userID === object._id.toString()
   )
-      ? { ...object.toObject(), isOnline: true }
-      : { ...object.toObject(), isOnline: true };
+    ? { ...object.toObject(), isOnline: true }
+    : { ...object.toObject(), isOnline: true };
+};
+
+const setUserOnline = async (userID, value) => {
+  try {
+    await User.findOneAndUpdate({ _id: userID }, { isOnline: value });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 module.exports = {
@@ -168,5 +176,6 @@ module.exports = {
   removeNamespaceFromUser,
   getUserData,
   getNamespaceUsers,
-  checkIfUserOnline
+  checkIfUserOnline,
+  setUserOnline
 };

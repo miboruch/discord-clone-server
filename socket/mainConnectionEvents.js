@@ -3,6 +3,7 @@ const userController = require('../controllers/UserController');
 const onlineUsers = require('../modules/onlineUsers');
 
 const mainConnectionEvents = async socket => {
+  await userController.setUserOnline(socket.decoded._id, true);
   if (
     onlineUsers.onlineUsers.some(user => user.userID === socket.decoded._id)
   ) {
@@ -62,8 +63,9 @@ const mainConnectionEvents = async socket => {
   });
 
   /* Disconnect */
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log('DISCONNECTING');
+    await userController.setUserOnline(socket.decoded._id, false);
     const index = onlineUsers.onlineUsers.findIndex(
       item => item.userID === socket.decoded._id
     );
