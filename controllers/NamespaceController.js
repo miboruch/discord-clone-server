@@ -1,10 +1,7 @@
 const Namespace = require('../models/Namespace');
-const Room = require('../models/Room');
-const Message = require('../models/Message');
 const User = require('../models/User');
 const roomController = require('../controllers/RoomController');
 const userController = require('../controllers/UserController');
-const onlineUsers = require('../modules/onlineUsers');
 
 const getAllNamespaces = async () => {
   return await Namespace.find();

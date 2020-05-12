@@ -1,4 +1,3 @@
-const slugify = require('slugify');
 const socket = require('../socket');
 const roomController = require('../controllers/RoomController');
 const namespaceController = require('../controllers/NamespaceController');
@@ -7,8 +6,6 @@ const userController = require('../controllers/UserController');
 
 const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
   const currentNamespace = socket.getIO().of(`/${namespace._id}`);
-  const namespaceUsers = [];
-  const usersOnline = [];
 
   /*
    * 1. Namespaces
@@ -114,7 +111,6 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
 
   //* LEAVE ROOM
   namespaceSocket.on('leave_room', roomName => {
-    console.log(`LEAVE ROOM ${roomName}`);
     namespaceSocket.leave(roomName, () => {
       currentNamespace.in(roomName).clients((error, clients) => {
         currentNamespace.in(roomName).emit('members_update', clients.length);
@@ -192,7 +188,6 @@ const namespaceConnectionEvents = async (namespaceSocket, namespace) => {
   })
 
   namespaceSocket.on('namespace_disconnect', () => {
-    usersOnline.filter(user => user.userID !== namespaceSocket.decoded._id);
     // namespaceSocket.disconnect();
   });
 };

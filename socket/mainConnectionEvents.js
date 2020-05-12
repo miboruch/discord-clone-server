@@ -1,22 +1,8 @@
 const namespaceController = require('../controllers/NamespaceController');
 const userController = require('../controllers/UserController');
-const onlineUsers = require('../modules/onlineUsers');
 
 const mainConnectionEvents = async socket => {
   await userController.setUserOnline(socket.decoded._id, true);
-  if (
-    onlineUsers.onlineUsers.some(user => user.userID === socket.decoded._id)
-  ) {
-    const index = onlineUsers.onlineUsers.findIndex(
-      item => item.userID === socket.decoded._id
-    );
-    onlineUsers.onlineUsers[index].socketID = socket.id;
-  } else {
-    onlineUsers.onlineUsers.push({
-      socketID: socket.id,
-      userID: socket.decoded._id
-    });
-  }
 
   /* send namespaces to the client */
   socket.emit(
@@ -64,12 +50,7 @@ const mainConnectionEvents = async socket => {
 
   /* Disconnect */
   socket.on('disconnect', async () => {
-    console.log('DISCONNECTING');
     await userController.setUserOnline(socket.decoded._id, false);
-    const index = onlineUsers.onlineUsers.findIndex(
-      item => item.userID === socket.decoded._id
-    );
-    index > -1 && onlineUsers.onlineUsers.splice(index, 1);
   });
 };
 

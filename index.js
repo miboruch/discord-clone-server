@@ -9,7 +9,6 @@ const namespaceModule = require('./modules/namespacesModule');
 require('dotenv').config();
 const mainConnectionEvents = require('./socket/mainConnectionEvents');
 const namespaceConnectionEvent = require('./socket/namespaceConnectionEvents');
-const helperModule = require('./utils/helpers');
 
 const userRoutes = require('./routes/userRoutes');
 
@@ -35,7 +34,6 @@ connection.on('error', error => {
 
 /* Database connection */
 connection.once('open', async () => {
-  console.log('Connected to DB');
   const server = app.listen(9000);
   const io = socket.init(server);
 

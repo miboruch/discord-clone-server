@@ -37,7 +37,6 @@ const fetchHistoryMessagesByDate = async (roomID, date, namespaceSocket) => {
       .sort({ date: -1 })
       .limit(10);
 
-    console.log(messages);
     namespaceSocket.emit('load_history', messages);
   } catch (error) {
     console.log(error);

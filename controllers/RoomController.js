@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const slugify = require('slugify');
 const Room = require('../models/Room');
 const messageController = require('../controllers/MessageController');
@@ -96,7 +95,6 @@ const removeSingleRoom = async (
 const removeRooms = async namespaceID => {
   try {
     const rooms = await getAllNamespaceRooms(namespaceID);
-    console.log(rooms);
 
     rooms.map(async room => {
       await messageController.removeMessages(
